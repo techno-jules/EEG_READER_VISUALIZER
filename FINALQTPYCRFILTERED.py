@@ -319,7 +319,7 @@ class SignalGrapher(QMainWindow):
         self.seg_compare3=np.array(self.seg_compare3)
         self.t4 = np.arange(self.seg_compare3.shape[0])/self.compression_samplerate #time or x axis for high AND low passed eeg CR
         
-        self.signal4= self.seg_compare #compress ratio low pass!
+        self.signalLOW= self.seg_compare #compress ratio low pass!
         self.signalHIGH = self.seg_compare2 #compress ratio high pass!
         self.signalHIGHLOW = self.seg_compare3 #compress ratio high AND LOW pass!
     
@@ -355,7 +355,7 @@ class SignalGrapher(QMainWindow):
 
         #filtered graphs' CR below
 
-        self.plot_widget4.plot(x=self.t2, y=self.signal4, pen='w')
+        self.plot_widget4.plot(x=self.t2, y=self.signalLOW, pen='w')
         self.plot_widget4.setYRange(3, 8)
         self.plot_widget4.setXRange(0, sectotal, padding=0.11)
         self.plot_widget4.setTitle((f"CR of Low Passed EEG of {num_sections} sections in secs: {eeg_name}"))
@@ -388,9 +388,6 @@ class SignalGrapher(QMainWindow):
         self.CR = self.seg_compare
  
         self.CRsAvg = sum(self.CR) / len(self.CR)
-            
-
-
         
 # Create the application
 app = QApplication([])
