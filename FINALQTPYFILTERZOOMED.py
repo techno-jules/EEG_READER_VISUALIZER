@@ -97,10 +97,10 @@ class SignalGrapher(QMainWindow):
         self.plot_widget1 = pg.PlotWidget() #sin wave
         self.plot_widget2 = pg.PlotWidget() #sin wave
         self.plot_widget3 = pg.PlotWidget() #sin wave
-        self.plot_widget4 = pg.PlotWidget()
-        self.plot_widget5 = pg.PlotWidget()
-        self.plot_widget6 = pg.PlotWidget()
-        self.plot_widget7 = pg.PlotWidget()
+        self.plot_widget4 = pg.PlotWidget() #eeg
+        self.plot_widget5 = pg.PlotWidget() #eeg
+        self.plot_widget6 = pg.PlotWidget() #eeg
+     
 
        
 
@@ -112,11 +112,9 @@ class SignalGrapher(QMainWindow):
         #layout.addWidget(self.plot_widget3)
 
         #eeg signals
-        layout.addWidget(self.plot_widget5) #full zoomed out eeg graph
-        layout.addWidget(self.plot_widget4) #compression ratio of full zoomed out eeg graph
-        layout.addWidget(self.button1) #display numerical compression ratios
-        layout.addWidget(self.plot_widget7) #compression ratio of zoomed in eeg graph
-        layout.addWidget(self.plot_widget6) #zoomed in eeg graph
+        layout.addWidget(self.plot_widget4) #zoomed in low pass filtered eeg graph
+        layout.addWidget(self.plot_widget5) #zoomed in hgih pass filtered eeg graph
+        layout.addWidget(self.plot_widget6) #zoomed in low AND high pass filtered eeg graph
 
 
         #pan left and right buttons
@@ -131,7 +129,7 @@ class SignalGrapher(QMainWindow):
         self.left_button.setStyleSheet("font-size: 10pt; font-weight: bold; color: blue; margin: 1px; background-color: #F1BDFF;")
         self.right_button.setStyleSheet("font-size: 10pt; font-weight: bold; color: blue; margin: 1px; background-color: #F1BDFF;")
 
-        self.current_x_range = (0, sectotal/50) #custom x-range for zoomed in graphs
+        self.current_x_range = (0, sectotal/100) #custom x-range for zoomed in graphs
 
         # Set the central widget
         self.setCentralWidget(central_widget)
@@ -248,7 +246,7 @@ class SignalGrapher(QMainWindow):
         self.plot_widget4.clear()
         self.plot_widget5.clear()
         self.plot_widget6.clear()
-        self.plot_widget7.clear()
+      
 
         # Plot the custom sine signals
         self.plot_widget1.plot(x=self.sinx, y=self.signal, pen='c')
@@ -270,50 +268,38 @@ class SignalGrapher(QMainWindow):
         self.plot_widget3.setLabel('bottom', 'Time')
 
       
-        #graphing qtpy graph of eeg signals and their compression ratios
+        #graphing qtpy graph of filtered eeg signals zoomed in
 
-        self.plot_widget4.plot(x=self.t2, y=self.signal4, pen='w')
+        self.plot_widget4.plot(x=self.t, y=lowpass(self.signal5), pen='w')
         #self.plot_widget4.disableAutoRange()
-        self.plot_widget4.setYRange(10, 60)
-        self.plot_widget4.setXRange(0, sectotal, padding=0.11)
-        self.plot_widget4.setTitle((f"Compression Ratio of {num_sections} sections in secs: {eeg_name}"))
-        self.plot_widget4.setLabel('left', 'compression ratio')
+        self.plot_widget4.setYRange(-240, 500)
+        self.plot_widget4.setXRange(self.current_x_range[0], self.current_x_range[1], padding=0.11)
+        self.plot_widget4.setTitle((f"ZOOMED IN LOW FILTERED: Compression Ratio of {num_sections} sections in secs: {eeg_name}"))
+        self.plot_widget4.setLabel('left', 'amplitude')
         self.plot_widget4.setLabel('bottom', 'seconds')
+        #self.current_x_range[0], self.current_x_range[1]
 
-        self.plot_widget5.plot(x=self.t, y=self.signal5, pen='m')
-        self.plot_widget5.setYRange(-800, 800)
+        self.plot_widget5.plot(x=self.t, y=highpass(self.signal5), pen='m')
+        self.plot_widget5.setYRange(-120, 500)
         #self.plot_widget5.setXRange(0.0, sectotal-5, padding=0.09)
-        self.plot_widget5.setTitle((f"1st {sectotal} secs of EEG signal: {eeg_name}"))
+        self.plot_widget5.setTitle((f"ZOOMED IN HIGH FILTERED: 1st {sectotal} secs of EEG signal: {eeg_name}"))
         self.plot_widget5.setLabel('left', 'amplitude')
         self.plot_widget5.setLabel('bottom', 'seconds')
 
         self.plot_widget5.setXLink(self.plot_widget4)
 
-        #zoomed in graphs below ################
-
-        self.plot_widget6.plot(x=self.t2, y=self.signal4, pen='w')
-        self.plot_widget6.setYRange(30, 80)
-        self.plot_widget6.setXRange(self.current_x_range[0], self.current_x_range[1], padding=0.11)
-        self.plot_widget6.setTitle((f"ZOOMED IN: Compression Ratio of {num_sections} sections in secs: {eeg_name}"))
-        self.plot_widget6.setLabel('left', 'compression ratio')
+        self.plot_widget6.plot(x=self.t, y=highpass(lowpass(self.signal5)), pen='y')
+        #self.plot_widget5.setXRange(0.0, sectotal-5, padding=0.09)
+        self.plot_widget6.setYRange(-120, 500)
+        self.plot_widget6.setTitle(("ZOOMED IN EEG Through High-Pass AND Low-Pass Filter"))
+        self.plot_widget6.setLabel('left', 'amplitude')
         self.plot_widget6.setLabel('bottom', 'seconds')
-        #self.current_x_range[0], self.current_x_range[1]
-
-        self.plot_widget7.plot(x=self.t, y=self.signal5, pen='m')
-        self.plot_widget7.setYRange(-250, 300)
-       
-        self.plot_widget7.setTitle((f"ZOOMED IN: 1st {sectotal} secs of EEG signal: {eeg_name}"))
-        self.plot_widget7.setLabel('left', 'amplitude')
-        self.plot_widget7.setLabel('bottom', 'seconds')
-
-        self.plot_widget7.setXLink(self.plot_widget6)
+        self.plot_widget6.setXLink(self.plot_widget5)
 
         # Refresh the plots
         self.plot_widget1.autoRange()
         self.plot_widget2.autoRange()
         self.plot_widget3.autoRange()
-        self.plot_widget4.autoRange()
-        self.plot_widget5.autoRange()
         
         #calculate numerical compression ratios of each portion of eeg and total avg compression ratio of eeg
         self.CR = self.seg_compare
